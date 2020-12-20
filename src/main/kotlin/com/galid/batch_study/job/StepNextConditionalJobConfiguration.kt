@@ -17,7 +17,7 @@ class StepNextConditionalJobConfiguration(
     private val stepBuilderFactory: StepBuilderFactory
 ) {
     @Bean
-    fun job(): Job {
+    fun conditionJob(): Job {
         return jobBuilderFactory["conditionJob"]
             .start(conditionalStep1())
                 .on(ExitStatus.FAILED.exitCode)
