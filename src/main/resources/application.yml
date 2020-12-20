@@ -16,3 +16,6 @@ spring:
     username: root
     password: 1234
 
+  batch:
+    job:
+      names: ${job.name:NONE}
