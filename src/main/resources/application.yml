@@ -1,0 +1,18 @@
+# Server port
+server:
+  port: 8080
+
+  # Mongo Configuration
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: test
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/batchtest?serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1234
+
