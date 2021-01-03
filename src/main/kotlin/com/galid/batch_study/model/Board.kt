@@ -12,4 +12,6 @@ class Board (
     var content: String? = null,
     var score: Double? = 0.0,
     var readCount: Int? = 0,
+    var likeCount: Int? = 0,
+    var commentCount: Int? = 0
 ) : BaseDocument()

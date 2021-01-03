@@ -1,6 +1,8 @@
 package com.galid.batch_study.job
 
 import com.galid.batch_study.model.Board
+import com.galid.batch_study.processor.MongoItemProcessor
+import com.mongodb.MongoSocketException
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -12,17 +14,18 @@ import org.springframework.batch.item.data.builder.MongoItemReaderBuilder
 import org.springframework.batch.item.data.builder.MongoItemWriterBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.dao.DeadlockLoserDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Query
-import java.util.*
+import org.springframework.retry.backoff.SleepingBackOffPolicy
 
 
 @Configuration
 class MongoJobConfiguration (
     private val jobBuilderFactory: JobBuilderFactory,
     private val stepBuilderFactory: StepBuilderFactory,
-    private val mongoTemplate: MongoTemplate
+    private val mongoTemplate: MongoTemplate,
+    private val itemProcessor: ItemProcessor<Board, Board>
 ){
     @Bean
     fun mongoJob(): Job {
@@ -36,8 +39,12 @@ class MongoJobConfiguration (
         return stepBuilderFactory["mongoChunkStep"]
             .chunk<Board, Board>(10)
             .reader(mongoItemReader())
-            .processor(MongoProcessor())
+            .processor(itemProcessor)
             .writer(mongoItemWriter())
+            .faultTolerant()
+                .retryLimit(3)
+                .retry(MongoSocketException::class.java)
+                .retry(DeadlockLoserDataAccessException::class.java)
             .build();
     }
 
@@ -59,11 +66,4 @@ class MongoJobConfiguration (
             .build()
     }
 
-    class MongoProcessor: ItemProcessor<Board, Board> {
-        override fun process(item: Board): Board? {
-            println("item : ${item.content}")
-            item.score = 20.0
-            return item
-        }
-    }
 }
